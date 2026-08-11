@@ -46,4 +46,12 @@ public class Livro {
     )
     @JoinColumn(name = "id_autor")
     private Autor autor;
+
+    @CreatedDate
+    @Column(name = "data_criacao")
+    private LocalDateTime dataCriacao;
+
+    @LastModifiedDate
+    @Column(name = "data_atualizacao")
+    private LocalDateTime dataAtualizacao;
 }
