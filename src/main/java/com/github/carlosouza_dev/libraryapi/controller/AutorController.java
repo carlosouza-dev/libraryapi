@@ -1,6 +1,9 @@
 package com.github.carlosouza_dev.libraryapi.controller;
 
 import com.github.carlosouza_dev.libraryapi.controller.dto.AutorDTO;
+import com.github.carlosouza_dev.libraryapi.controller.dto.ErroResposta;
+import com.github.carlosouza_dev.libraryapi.exception.OperacaoNaoPermitidaException;
+import com.github.carlosouza_dev.libraryapi.exception.RegistroDuplicadoException;
 import com.github.carlosouza_dev.libraryapi.model.Autor;
 import com.github.carlosouza_dev.libraryapi.service.AutorService;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +26,24 @@ public class AutorController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> salvar(@RequestBody AutorDTO autor){
-        Autor autorEntity = autor.mapearParaAutor();
+    public ResponseEntity<?> salvar(@RequestBody AutorDTO autor){
+        try {
+            Autor autorEntity = autor.mapearParaAutor();
 
-        service.salvar(autorEntity);
+            service.salvar(autorEntity);
 
-        URI uri = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(autorEntity.getId())
-                .toUri();
+            URI uri = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(autorEntity.getId())
+                    .toUri();
 
-        return ResponseEntity.created(uri).build();
+            return ResponseEntity.created(uri).build();
+
+        } catch (RegistroDuplicadoException e) {
+            ErroResposta erroDTO = ErroResposta.conflito(e.getMessage());
+            return ResponseEntity.status(erroDTO.status()).body(erroDTO);
+        }
     }
 
     //GET http://localhost:8080/autores/ass-22ljklafa-asdfa
@@ -59,16 +68,22 @@ public class AutorController {
     }
 
     @DeleteMapping("/{id}")
-     public ResponseEntity<Void> deletar(@PathVariable UUID id){
-        Optional<Autor> optAutor = service.buscar(id);
+     public ResponseEntity<?> deletar(@PathVariable UUID id){
+        try {
+            Optional<Autor> optAutor = service.buscar(id);
 
-        if (optAutor.isEmpty()){
-            return ResponseEntity.notFound().build();
+            if (optAutor.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            service.deletar(optAutor.get());
+
+            return ResponseEntity.noContent().build();
+
+        } catch (OperacaoNaoPermitidaException e) {
+            var erroDTO = ErroResposta.erroPadrao(e.getMessage());
+            return ResponseEntity.status(erroDTO.status()).body(erroDTO);
         }
-
-        service.deletar(optAutor.get());
-
-        return ResponseEntity.noContent().build();
     }
 
     //GET http://localhost:8080/autores?nome=loscar
@@ -93,21 +108,27 @@ public class AutorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> atualizar(
+    public ResponseEntity<Object> atualizar(
             @PathVariable UUID id,
             @RequestBody AutorDTO dto
     ){
-        Optional<Autor> optAutor = service.buscar(id);
+        try {
+            Optional<Autor> optAutor = service.buscar(id);
 
-        if(optAutor.isEmpty()) return ResponseEntity.notFound().build();
+            if (optAutor.isEmpty()) return ResponseEntity.notFound().build();
 
-        Autor autor = optAutor.get();
-        autor.setNome(dto.nome());
-        autor.setDataNascimento(dto.dataNascimento());
-        autor.setNacionalidade(dto.nacionalidade());
+            Autor autor = optAutor.get();
+            autor.setNome(dto.nome());
+            autor.setDataNascimento(dto.dataNascimento());
+            autor.setNacionalidade(dto.nacionalidade());
 
-        service.atualizar(autor);
+            service.atualizar(autor);
 
-        return ResponseEntity.noContent().build();
+            return ResponseEntity.noContent().build();
+
+        } catch (RegistroDuplicadoException e) {
+            var erroDTO = ErroResposta.conflito(e.getMessage());
+            return ResponseEntity.status(erroDTO.status()).body(erroDTO);
+        }
     }
 }
