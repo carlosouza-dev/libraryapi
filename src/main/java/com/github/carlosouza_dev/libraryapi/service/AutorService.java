@@ -6,6 +6,9 @@ import com.github.carlosouza_dev.libraryapi.repository.AutorRepository;
 import com.github.carlosouza_dev.libraryapi.repository.LivroRepository;
 import com.github.carlosouza_dev.libraryapi.validator.AutorValidator;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -60,5 +63,24 @@ public class AutorService {
         }
 
         return repository.findAll();
+    }
+
+    public List<Autor> filtrarByExample(String nome, String nacionalidade){
+        Example<Autor> example = getExample(nome, nacionalidade);
+
+        return repository.findAll(example);
+    }
+
+    private static @NonNull Example<Autor> getExample(String nome, String nacionalidade) {
+        Autor autor = new Autor();
+        autor.setNome(nome);
+        autor.setNacionalidade(nacionalidade);
+
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnoreCase()
+                .withIgnoreNullValues()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+
+        return Example.of(autor, matcher);
     }
 }
