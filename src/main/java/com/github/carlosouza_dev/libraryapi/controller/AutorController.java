@@ -1,136 +1,50 @@
 package com.github.carlosouza_dev.libraryapi.controller;
 
 import com.github.carlosouza_dev.libraryapi.controller.dto.AutorDTO;
-import com.github.carlosouza_dev.libraryapi.controller.dto.ErroResposta;
-import com.github.carlosouza_dev.libraryapi.exception.OperacaoNaoPermitidaException;
-import com.github.carlosouza_dev.libraryapi.exception.RegistroDuplicadoException;
 import com.github.carlosouza_dev.libraryapi.model.Autor;
-import com.github.carlosouza_dev.libraryapi.service.AutorService;
-import jakarta.validation.Valid;
+import com.github.carlosouza_dev.libraryapi.repository.AutorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("autores")
 public class AutorController {
 
-    private final AutorService service;
-
-    public AutorController(AutorService service) {
-        this.service = service;
-    }
+    @Autowired
+    private AutorRepository repository;
 
     @PostMapping
-    public ResponseEntity<?> salvar(@RequestBody @Valid  AutorDTO autor){
-        try {
-            Autor autorEntity = autor.mapearParaAutor();
+    public ResponseEntity<Autor> salvar(@RequestBody AutorDTO autor){
 
-            service.salvar(autorEntity);
+        var autorEntity = new Autor();
+        autorEntity.setNome(autor.nome());
+        autorEntity.setNacionalidade(autor.nacionalidade());
+        autorEntity.setDataNascimento(autor.dataNascimento());
 
-            URI uri = ServletUriComponentsBuilder
-                    .fromCurrentRequest()
-                    .path("/{id}")
-                    .buildAndExpand(autorEntity.getId())
-                    .toUri();
+        Autor save = repository.save(autorEntity);
 
-            return ResponseEntity.created(uri).build();
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(save.getId())
+                .toUri();
 
-        } catch (RegistroDuplicadoException e) {
-            ErroResposta erroDTO = ErroResposta.conflito(e.getMessage());
-            return ResponseEntity.status(erroDTO.status()).body(erroDTO);
-        }
+        return ResponseEntity.created(uri).build();
     }
 
-    //GET http://localhost:8080/autores/ass-22ljklafa-asdfa
-    @GetMapping("/{id}")
-    public ResponseEntity<AutorDTO> buscar(@PathVariable UUID id){
-        Optional<Autor> optAutor = service.buscar(id);
+    @GetMapping("{id}")
+    public ResponseEntity<Autor> buscar(@PathVariable UUID id){
+        Autor autor = repository.findById(id).orElse(null);
 
-        if(optAutor.isPresent()){
-            Autor autor = optAutor.get();
-
-            AutorDTO autorDTO = new AutorDTO(
-                    autor.getId(),
-                    autor.getNome(),
-                    autor.getDataNascimento(),
-                    autor.getNacionalidade()
-            );
-
-            return ResponseEntity.ok(autorDTO);
+        if (autor == null){
+            return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.notFound().build();
-    }
-
-    @DeleteMapping("/{id}")
-     public ResponseEntity<?> deletar(@PathVariable UUID id){
-        try {
-            Optional<Autor> optAutor = service.buscar(id);
-
-            if (optAutor.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            service.deletar(optAutor.get());
-
-            return ResponseEntity.noContent().build();
-
-        } catch (OperacaoNaoPermitidaException e) {
-            var erroDTO = ErroResposta.erroPadrao(e.getMessage());
-            return ResponseEntity.status(erroDTO.status()).body(erroDTO);
-        }
-    }
-
-    //GET http://localhost:8080/autores?nome=loscar
-    @GetMapping
-    public ResponseEntity<List<AutorDTO>> filtrar(
-            @RequestParam(value = "nome", required = false) String nome,
-            @RequestParam(value = "nacionalidade", required = false) String nacionalidade
-    ){
-        List<Autor> listAutores = service.filtrarByExample(nome, nacionalidade);
-
-        List<AutorDTO> listAutoresDTO = listAutores.stream()
-                .map(autor -> {
-                    return new AutorDTO(
-                            autor.getId(),
-                            autor.getNome(),
-                            autor.getDataNascimento(),
-                            autor.getNacionalidade()
-                    );
-                }).toList();
-
-        return ResponseEntity.ok(listAutoresDTO);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Object> atualizar(
-            @PathVariable UUID id,
-            @RequestBody AutorDTO dto
-    ){
-        try {
-            Optional<Autor> optAutor = service.buscar(id);
-
-            if (optAutor.isEmpty()) return ResponseEntity.notFound().build();
-
-            Autor autor = optAutor.get();
-            autor.setNome(dto.nome());
-            autor.setDataNascimento(dto.dataNascimento());
-            autor.setNacionalidade(dto.nacionalidade());
-
-            service.atualizar(autor);
-
-            return ResponseEntity.noContent().build();
-
-        } catch (RegistroDuplicadoException e) {
-            var erroDTO = ErroResposta.conflito(e.getMessage());
-            return ResponseEntity.status(erroDTO.status()).body(erroDTO);
-        }
+        return ResponseEntity.ok(autor);
     }
 }
