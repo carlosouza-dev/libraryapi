@@ -3,6 +3,7 @@ package com.github.carlosouza_dev.libraryapi.controller;
 import com.github.carlosouza_dev.libraryapi.controller.dto.AutorDTO;
 import com.github.carlosouza_dev.libraryapi.model.Autor;
 import com.github.carlosouza_dev.libraryapi.repository.AutorRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -20,7 +22,7 @@ public class AutorController {
     private AutorRepository repository;
 
     @PostMapping
-    public ResponseEntity<Autor> salvar(@RequestBody AutorDTO autor){
+    public ResponseEntity<Autor> salvar(@RequestBody @Valid AutorDTO autor){
 
         var autorEntity = new Autor();
         autorEntity.setNome(autor.nome());
@@ -46,5 +48,23 @@ public class AutorController {
         }
 
         return ResponseEntity.ok(autor);
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<AutorDTO>> buscarTodos(){
+        List<Autor> autores = repository.findAll();
+
+        List<AutorDTO> list = autores.stream()
+                .map(autor -> {
+                    return new AutorDTO(
+                            autor.getId(),
+                            autor.getNome(),
+                            autor.getDataNascimento(),
+                            autor.getNacionalidade()
+                    );
+                })
+                .toList();
+
+        return ResponseEntity.ok(list);
     }
 }

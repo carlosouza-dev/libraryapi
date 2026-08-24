@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
+    // Excecoes lancada pelo starter validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErroResposta> handleMethodArgumentNotValidateException(MethodArgumentNotValidException e){
         List<FieldError> fieldErrors = e.getFieldErrors();
