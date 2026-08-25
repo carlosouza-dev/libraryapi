@@ -14,15 +14,5 @@ public record AutorDTO(
         @NotNull(message = "dataNascimento é um campo obrigatório")
         LocalDate dataNascimento,
         @NotBlank(message = "nacionalidade é um campo obrigatório")
-        String nacionalidade) {
-
-    public Autor mapearParaAutor(){
-        Autor autor = new Autor();
-        autor.setNome(nome);
-        autor.setDataNascimento(dataNascimento);
-        autor.setNacionalidade(nacionalidade);
-
-        return autor;
-    }
-
-}
+        String nacionalidade
+){}
