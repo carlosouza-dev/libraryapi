@@ -3,6 +3,7 @@ package com.github.carlosouzadev.libraryapi.controller;
 import com.github.carlosouzadev.libraryapi.controller.dto.CadastroLivroDTO;
 import com.github.carlosouzadev.libraryapi.controller.dto.RespostaPesquisaLivroDTO;
 import com.github.carlosouzadev.libraryapi.controller.mapper.LivroMapper;
+import com.github.carlosouzadev.libraryapi.model.GeneroLivro;
 import com.github.carlosouzadev.libraryapi.model.Livro;
 import com.github.carlosouzadev.libraryapi.service.LivroService;
 import jakarta.validation.Valid;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,6 +46,24 @@ public class LivroController implements GenericController {
 
         Livro livro = opt.get();
         return ResponseEntity.ok(livroMapper.toDTO(livro));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<RespostaPesquisaLivroDTO>> filtrar(
+            @RequestParam(required = false) String isbn,
+            @RequestParam(required = false) String titulo,
+            @RequestParam(name = "nome-autor", required = false) String nomeAutor,
+            @RequestParam(name = "genero-livro", required = false) GeneroLivro generoLivro,
+            @RequestParam(name = "ano-publicacao", required = false) Integer anoPublicacao
+    ){
+        List<Livro> listaLivro = livroService
+                .filtrar(isbn, titulo, nomeAutor, generoLivro, anoPublicacao);
+
+        List<RespostaPesquisaLivroDTO> listaLivroDTO = listaLivro.stream()
+                .map(livroMapper::toDTO)
+                .toList();
+
+        return ResponseEntity.ok(listaLivroDTO);
     }
 
     @DeleteMapping("/{id}")
