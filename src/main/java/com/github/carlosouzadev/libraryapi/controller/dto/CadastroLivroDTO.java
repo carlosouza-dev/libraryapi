@@ -22,6 +22,7 @@ public record CadastroLivroDTO(
         @PastOrPresent
         @NotNull
         LocalDate dataPublicacao,
+
         GeneroLivro genero,
         BigDecimal valor,
 

@@ -23,12 +23,12 @@ public class AutorService {
     private final AutorValidator validator;
     private final LivroRepository livroRepository;
 
-    public Autor salvar(Autor autor){
+    public Autor salvar(Autor autor) {
         validator.validar(autor);
         return repository.save(autor);
     }
 
-    public void atualizar(Autor autor){
+    public void atualizar(Autor autor) {
         if (autor.getId() == null) throw new IllegalArgumentException("Autor precisa ter id para atualizar");
 
         validator.validar(autor);
@@ -39,7 +39,7 @@ public class AutorService {
         return repository.findById(id);
     }
 
-    public void deletar(Autor autor){
+    public void deletar(Autor autor) {
         if (possuiLivros(autor))
             throw new OperacaoNaoPermitidaException("Não é possível excluir Autor(a) que possua livros cadastrados");
         repository.delete(autor);
@@ -49,7 +49,7 @@ public class AutorService {
         return livroRepository.existsByAutor(autor);
     }
 
-    public List<Autor> filtrar(String nome, String nacionalidade){
+    public List<Autor> filtrar(String nome, String nacionalidade) {
         if (nome != null && nacionalidade != null) {
             return repository.findByNomeAndNacionalidade(nome, nacionalidade);
         }
@@ -58,14 +58,14 @@ public class AutorService {
             return repository.findByNome(nome);
         }
 
-        if (nacionalidade != null){
+        if (nacionalidade != null) {
             return repository.findByNacionalidade(nacionalidade);
         }
 
         return repository.findAll();
     }
 
-    public List<Autor> filtrarByExample(String nome, String nacionalidade){
+    public List<Autor> filtrarByExample(String nome, String nacionalidade) {
         Example<Autor> example = getExample(nome, nacionalidade);
 
         return repository.findAll(example);
