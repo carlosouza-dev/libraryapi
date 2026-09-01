@@ -9,6 +9,7 @@ import com.github.carlosouzadev.libraryapi.service.LivroService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -64,6 +65,32 @@ public class LivroController implements GenericController {
                 .toList();
 
         return ResponseEntity.ok(listaLivroDTO);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Object> atualizar(
+            @PathVariable UUID id,
+            @RequestBody @Valid CadastroLivroDTO dto
+    ){
+        return livroService.buscar(id)
+                .map(livro -> {
+                    atualizarCamposLivro(livro, dto);
+                    return ResponseEntity.noContent().build();
+                }).orElse(ResponseEntity.notFound().build());
+    }
+
+    private void atualizarCamposLivro(Livro livro, CadastroLivroDTO dto) {
+        // faz a conversão de idAutor para autor automaticamente
+        Livro aux = livroMapper.toEntity(dto);
+
+        livro.setIsbn(aux.getIsbn());
+        livro.setTitulo(aux.getTitulo());
+        livro.setDataPublicacao(aux.getDataPublicacao());
+        livro.setGenero(aux.getGenero());
+        livro.setPreco(aux.getPreco());
+        livro.setAutor(aux.getAutor());
+
+        livroService.atualizar(livro);
     }
 
     @DeleteMapping("/{id}")

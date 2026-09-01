@@ -42,4 +42,9 @@ public class LivroService {
 
         return livroRepository.findAll(specs);
     }
+
+    public void atualizar(Livro livro) {
+        if (livro.getId() == null) throw new IllegalArgumentException("Livro precisa ter um id para atualizar");
+        livroRepository.save(livro);
+    }
 }
