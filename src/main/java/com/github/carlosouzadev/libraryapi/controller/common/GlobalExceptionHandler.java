@@ -2,6 +2,7 @@ package com.github.carlosouzadev.libraryapi.controller.common;
 
 import com.github.carlosouzadev.libraryapi.controller.dto.ErroCampo;
 import com.github.carlosouzadev.libraryapi.controller.dto.ErroResposta;
+import com.github.carlosouzadev.libraryapi.exception.CampoInvalidoException;
 import com.github.carlosouzadev.libraryapi.exception.OperacaoNaoPermitidaException;
 import com.github.carlosouzadev.libraryapi.exception.RegistroDuplicadoException;
 import org.springframework.http.HttpStatus;
@@ -50,9 +51,25 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(erro.status()).body(erro);
     }
 
+    @ExceptionHandler(CampoInvalidoException.class)
+    public ResponseEntity<ErroResposta> handleCampoInvalidoException(CampoInvalidoException e){
+
+        ErroResposta erro = new ErroResposta(
+                HttpStatus.UNPROCESSABLE_CONTENT.value(),
+                "Erro de validação",
+                List.of(new ErroCampo(
+                        e.getCampo(),
+                        e.getMessage()
+                ))
+        );
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(erro);
+    }
+
     // Exceções não tratadas
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErroResposta> handleRuntimeException(RuntimeException e){
+        e.printStackTrace();
         ErroResposta erro = new ErroResposta(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Ocorreu um erro inesperado",
