@@ -8,6 +8,7 @@ import com.github.carlosouzadev.libraryapi.model.Livro;
 import com.github.carlosouzadev.libraryapi.service.LivroService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -50,21 +51,26 @@ public class LivroController implements GenericController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RespostaPesquisaLivroDTO>> filtrar(
+    public ResponseEntity<Page<RespostaPesquisaLivroDTO>> filtrar(
             @RequestParam(required = false) String isbn,
             @RequestParam(required = false) String titulo,
             @RequestParam(name = "nome-autor", required = false) String nomeAutor,
             @RequestParam(name = "genero-livro", required = false) GeneroLivro generoLivro,
-            @RequestParam(name = "ano-publicacao", required = false) Integer anoPublicacao
+            @RequestParam(name = "ano-publicacao", required = false) Integer anoPublicacao,
+            @RequestParam(name = "numero-pagina", defaultValue = "0") Integer numeroPagina,
+            @RequestParam(name = "tamanho-pagina", defaultValue = "10") Integer tamanhoPagina
     ){
-        List<Livro> listaLivro = livroService
-                .filtrar(isbn, titulo, nomeAutor, generoLivro, anoPublicacao);
+        Page<RespostaPesquisaLivroDTO> page = livroService.filtrar(
+                isbn,
+                titulo,
+                nomeAutor,
+                generoLivro,
+                anoPublicacao,
+                numeroPagina,
+                tamanhoPagina
+        ).map(livroMapper::toDTO);
 
-        List<RespostaPesquisaLivroDTO> listaLivroDTO = listaLivro.stream()
-                .map(livroMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(listaLivroDTO);
+        return ResponseEntity.ok(page);
     }
 
     @PutMapping("/{id}")
