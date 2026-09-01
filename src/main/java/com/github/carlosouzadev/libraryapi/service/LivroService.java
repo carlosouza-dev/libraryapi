@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +39,7 @@ public class LivroService {
 
     public Page<Livro> filtrar(
             String isbn, String titulo, String nomeAutor, GeneroLivro genero, Integer ano,
-            Integer numeroPagina, Integer tamanhoPagina
+            Integer numeroPagina, Integer tamanhoPagina, String campoOrdenacao
     ){
         Specification<Livro> specs = Specification
                 .where(LivroSpecs.isbnEqual(isbn))
@@ -47,7 +48,7 @@ public class LivroService {
                 .and(LivroSpecs.generoEqual(genero))
                 .and(LivroSpecs.anoPublicacaoEqual(ano));
 
-        Pageable page = PageRequest.of(numeroPagina, tamanhoPagina);
+        Pageable page = PageRequest.of(numeroPagina, tamanhoPagina, Sort.by(campoOrdenacao).descending());
 
         return livroRepository.findAll(specs, page);
     }

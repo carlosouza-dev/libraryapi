@@ -58,7 +58,8 @@ public class LivroController implements GenericController {
             @RequestParam(name = "genero-livro", required = false) GeneroLivro generoLivro,
             @RequestParam(name = "ano-publicacao", required = false) Integer anoPublicacao,
             @RequestParam(name = "numero-pagina", defaultValue = "0") Integer numeroPagina,
-            @RequestParam(name = "tamanho-pagina", defaultValue = "10") Integer tamanhoPagina
+            @RequestParam(name = "tamanho-pagina", defaultValue = "10") Integer tamanhoPagina,
+            @RequestParam(name="ordenacao-pagina", defaultValue = "titulo") String campoOrdenacao
     ){
         Page<RespostaPesquisaLivroDTO> page = livroService.filtrar(
                 isbn,
@@ -67,7 +68,8 @@ public class LivroController implements GenericController {
                 generoLivro,
                 anoPublicacao,
                 numeroPagina,
-                tamanhoPagina
+                tamanhoPagina,
+                campoOrdenacao
         ).map(livroMapper::toDTO);
 
         return ResponseEntity.ok(page);
